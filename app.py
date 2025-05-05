@@ -24,11 +24,10 @@ road = pygame.image.load("road.png")
 
 player = pygame.image.load("player.png").convert_alpha()
 
-h = pygame.image.load("h.png").convert_alpha()
+lose = False
+
 s = pygame.image.load("s.png").convert_alpha()
 
-hx = 200
-hy = 170
 sx = 300
 sy = 170
 
@@ -57,15 +56,15 @@ ennemy2_y = 170
 ennemy_speed = 3
 ennemy2_speed = 3
 
-
-clock = pygame.time.Clock()
-start_ticks = pygame.time.get_ticks()
-
 lives = LIVES
+score = 0
+
+hi_score = 0
+
 road_scroll = 0
 road_speed = 3
 
-font = pygame.font.SysFont(None, 40)
+font = pygame.font.SysFont(None, 30)
 
 run = True
 while run:
@@ -82,6 +81,7 @@ while run:
     if keys[pygame.K_SPACE] and on_ground:
         player_vel_y = jump_strength    
         on_ground = False
+        score += 1
     
     player_vel_y += gravity
     player_y += player_vel_y
@@ -108,9 +108,6 @@ while run:
         y1 < y2 + h2 and
         y1 + h1 > y2
           )
-    
-    seconds = (pygame.time.get_ticks() - start_ticks) // 100
-    score_text = font.render(f"Score: {seconds}", True, BLACK)
    
 
     road_scroll += road_speed
@@ -134,7 +131,7 @@ while run:
     if touch(player_x, player_y, player.get_width(), player.get_height(), ennemy2_x, ennemy2_y, ennemy2.get_width(), ennemy2.get_height()) :
         lives -= 1
         player_speed = 5
-        
+    
     if ennemy_x < 0:
         ennemy_x = 799
        
@@ -154,23 +151,47 @@ while run:
         screen.blit(s, (sx, sy))
         
 
-    screen.blit(score_text, (50, 370))
-
     screen.blit(player, (player_x, player_y))
 
-    def show_score():
-        return seconds
-
-    def lose():
-        ticks = pygame.time.get_ticks()
-        screen.fill((0, 0, 0))
-        text = font.render(("WASTED!"), True, (255, 255, 255))
-        screen.blit(text, (325, 175))
-
-
     if lives < 1:
-        lose()
+        lose = True
+        player_speed = 0
+        ennemy2_speed = 0
+        ennemy_speed = 0 
+        jump_strength = 0
+        text = font.render(("WASTED! Press Space to Restart."), True, (255, 255, 255))
+        screen.blit(text, (200, 175))
+
+    if event.type == pygame.KEYUP and lives < 1:
         
+        if event.key == pygame.K_SPACE and lose:
+            score = 0
+            lives = 1 
+            player_x = 350
+            player_y = 170
+            jump_strength = -10
+            player_speed = 5
+            on_ground = True
+            ennemy_speed = 3
+            ennemy_x = 790
+            ennemy_y = 170
+            ennemy2_x = 10
+            ennemy2_y = 170
+            ennemy2_speed = 3
+            shows = True
     
+    if score > hi_score:
+        hi_score = score
+
+    score_text = font.render(f"Score: {score}", True, BLACK)
+    
+    hi_score_text = font.render(f"High Score: {hi_score}", True, BLACK)
+    screen.blit(score_text, (50, 370))
+   
+    screen.blit(hi_score_text, (50, 350))
+
+    
+    clock = pygame.time.Clock()
+
     pygame.display.flip()
     clock.tick(60)
